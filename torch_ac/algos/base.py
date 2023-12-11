@@ -82,8 +82,12 @@ class BaseAlgo(ABC):
         self.obs = self.env.reset()
         self.obss = [None] * (shape[0])
         if self.acmodel.recurrent:
-            self.memory = torch.zeros(shape[1], self.acmodel.memory_size, device=self.device)
-            self.memories = torch.zeros(*shape, self.acmodel.memory_size, device=self.device)
+            if self.acmodel.use_lru:
+                self.memory = torch.zeros((shape[1], self.acmodel.memory_rnn.num_layers * self.acmodel.semi_memory_size), dtype=torch.complex64, device=self.device)
+                self.memories = torch.zeros((*shape, self.acmodel.memory_rnn.num_layers * self.acmodel.semi_memory_size), dtype=torch.complex64, device=self.device)                
+            else:
+                self.memory = torch.zeros(shape[1], self.acmodel.memory_size, device=self.device)
+                self.memories = torch.zeros(*shape, self.acmodel.memory_size, device=self.device)
         self.mask = torch.ones(shape[1], device=self.device)
         self.masks = torch.zeros(*shape, device=self.device)
         self.actions = torch.zeros(*shape, device=self.device, dtype=torch.int)
